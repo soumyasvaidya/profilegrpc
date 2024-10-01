@@ -6,6 +6,11 @@ import (
 	"runtime"
 	"time"
 
+	rpcx "log"
+	"net/http"
+
+	_ "net/http/pprof"
+
 	"github.com/rpcxio/rpcx-benchmark/grpc/pb"
 	"github.com/smallnest/rpcx/log"
 	"golang.org/x/net/context"
@@ -34,6 +39,9 @@ func (t *Hello) Say(ctx context.Context, args *pb.BenchmarkMessage) (reply *pb.B
 
 func main() {
 	flag.Parse()
+	go func() {
+		rpcx.Println(http.ListenAndServe("localhost:6060", nil)) // Enable pprof on http://localhost:6060
+	}()
 
 	lis, err := net.Listen("tcp", *host)
 	if err != nil {
@@ -43,4 +51,5 @@ func main() {
 
 	pb.RegisterHelloServer(s, &Hello{})
 	s.Serve(lis)
+	//rpcx.Fatal(http.ListenAndServe(":8080", nil)) // Start your server
 }
